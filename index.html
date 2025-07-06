@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Endless Tower</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La ciola.</title>
+    <meta name="description" content="La ciola infinita.">
+    <meta name="keywords" content="la ciola, infinita, endless">
+    <meta name="author" content="laciola.it">
     <style>
         body {
             margin: 0;
@@ -24,12 +29,19 @@
             text-align: center;
             line-height: 1.6;
         }
+        
+        .print-button {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="welcome-text">
         <div>benvenuto su laciola.it</div>
         <div>sentiti libero di scorrere la pagina</div>
+        <div class="print-button">
+            <button onclick="window.print()">stampa la pagina</button>
+        </div>
     </div>
     
     <pre id="tower-top">.-----------.
@@ -48,7 +60,8 @@
         const towerBody = document.getElementById('tower-body');
         let sectionCount = 0;
 
-        const towerSection = ` |                     |
+        // Normal tower section
+        const normalSection = ` |                     |
  |                     |
  |                     |
  |                     |
@@ -57,8 +70,62 @@
  |                     |
  |                     |`;
 
+        // Slightly veiny section - one vein
+        const slightlyVeinySection = ` |  .                  |
+ |     .               |
+ |       .             |
+ |         .           |
+ |           .         |
+ |             .       |
+ |               .     |
+ |                 .   |`;
+
+        // Two veins section
+        const twoVeinsSection = ` |  .         .        |
+ |     .         .     |
+ |       .         .   |
+ |         .         . |
+ |           .       . |
+ |             .   .   |
+ |               . .   |
+ |                 .   |`;
+
+        // Three veins section
+        const threeVeinsSection = ` |  .     .       .    |
+ |     .     .       . |
+ |       .     .   .   |
+ |         .     . .   |
+ |           . .   .   |
+ |             . .     |
+ |               . .   |
+ |                 . . |`;
+
+        // Final stage - bottom left veiny
+        const finalVeinySection = ` |  .     .       .    |
+ | .   .     .       . |
+ | .     .     .   .   |
+ | .       .     . .   |
+ | .         . .   .   |
+ | .           . .     |
+ | .             . .   |
+ | .               . . |`;
+
+        function getTowerSection() {
+            if (sectionCount < 100) {
+                return normalSection;
+            } else if (sectionCount < 200) {
+                return slightlyVeinySection;
+            } else if (sectionCount < 300) {
+                return twoVeinsSection;
+            } else if (sectionCount < 400) {
+                return threeVeinsSection;
+            } else {
+                return finalVeinySection;
+            }
+        }
+
         function addTowerSection() {
-            towerBody.textContent += towerSection + '\n';
+            towerBody.textContent += getTowerSection() + '\n';
             sectionCount++;
         }
 
