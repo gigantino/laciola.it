@@ -48,9 +48,8 @@ function isValidName(name: string): boolean {
 
 // Anticheat functions
 function isValidScore(score: number): boolean {
-  // Maximum reasonable score (assuming 1 section per second, max 1 hour play)
-  const MAX_SCORE = 3600;
-  return score > 0 && score <= MAX_SCORE && Number.isInteger(score);
+  // Just check if it's a positive integer
+  return score > 0 && Number.isInteger(score);
 }
 
 function generateSessionId(): string {
