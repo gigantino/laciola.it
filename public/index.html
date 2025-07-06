@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>La ciola.</title>
+		<meta name="description" content="La ciola infinita." />
+		<meta name="keywords" content="la ciola, infinita, endless" />
+		<meta name="author" content="laciola.it" />
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+			}
+
+			pre {
+				margin: 0;
+				padding: 0;
+				text-align: center;
+				font-family: monospace;
+			}
+
+			.welcome-text {
+				margin-top: 50vh;
+				margin-bottom: 30px;
+				text-align: center;
+				line-height: 1.6;
+			}
+
+			.print-button {
+				margin-top: 20px;
+			}
+
+			.leaderboard-container {
+				position: fixed;
+				top: 20px;
+				right: 20px;
+				background: white;
+				border: 2px solid #000;
+				padding: 15px;
+				font-size: 12px;
+				width: 250px;
+				height: auto;
+				max-height: none;
+				overflow: visible;
+				box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+				display: block;
+			}
+
+			.leaderboard-title {
+				font-weight: bold;
+				text-align: center;
+				margin-bottom: 10px;
+				border-bottom: 1px solid #000;
+				padding-bottom: 5px;
+			}
+
+			.score-display {
+				text-align: center;
+				margin-bottom: 10px;
+				font-weight: bold;
+				color: #333;
+			}
+
+			.name-input {
+				width: 100%;
+				padding: 5px;
+				margin-bottom: 10px;
+				border: 1px solid #000;
+				box-sizing: border-box;
+			}
+
+			.submit-button {
+				width: 100%;
+				padding: 5px;
+				margin-bottom: 10px;
+				border: 1px solid #000;
+				background: white;
+				cursor: pointer;
+				box-sizing: border-box;
+			}
+
+			.submit-button:hover {
+				background: #f0f0f0;
+			}
+
+			.submit-button:disabled {
+				background: #ccc;
+				cursor: not-allowed;
+			}
+
+			.leaderboard-list {
+				font-size: 11px;
+				max-height: 200px;
+				overflow: visible;
+			}
+
+			.leaderboard-entry {
+				display: flex;
+				justify-content: space-between;
+				margin-bottom: 3px;
+				padding: 2px 0;
+				border-bottom: 1px dotted #ccc;
+			}
+
+			.rank {
+				font-weight: bold;
+				margin-right: 5px;
+			}
+
+			.status-message {
+				font-size: 10px;
+				text-align: center;
+				margin-top: 5px;
+				color: #666;
+			}
+
+			.error-message {
+				color: #d00;
+			}
+
+			.success-message {
+				color: #0a0;
+			}
+
+			.name-validation {
+				font-size: 10px;
+				color: #666;
+				margin-bottom: 5px;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="welcome-text">
+			<div>benvenuto su laciola.it</div>
+			<div>sentiti libero di scorrere la pagina</div>
+			<div class="print-button">
+				<button onclick="window.print()">stampa la pagina</button>
+			</div>
+		</div>
+
+		<div id="leaderboard-container" class="leaderboard-container">
+			<div class="leaderboard-title">CLASSI-FICA</div>
+			<div class="score-display">Punteggio: <span id="current-score">0</span></div>
+			<div class="name-validation">3-16 caratteri: lettere, numeri, _</div>
+			<input type="text" id="player-name" class="name-input" placeholder="Il tuo nome..." maxlength="16" />
+			<button id="submit-score" class="submit-button">Salva Punteggio</button>
+			<div id="status-message" class="status-message"></div>
+			<div id="leaderboard-list" class="leaderboard-list">
+				<div class="leaderboard-entry">
+					<div>Caricamento...</div>
+				</div>
+			</div>
+		</div>
+
+		<pre id="tower-top">
+.-----------.
+/              \
+/                 \
+/                   \
+/                      \
+/                        \
+|                         |
+|                         |
+\________________________/
+ |                     |
+ |                     |</pre
+		>
+		<pre id="tower-body"></pre>
+
+		<script>
+			const towerBody = document.getElementById('tower-body');
+			const currentScoreElement = document.getElementById('current-score');
+			const playerNameInput = document.getElementById('player-name');
+			const submitButton = document.getElementById('submit-score');
+			const statusMessage = document.getElementById('status-message');
+			const leaderboardList = document.getElementById('leaderboard-list');
+			const leaderboardContainer = document.getElementById('leaderboard-container');
+
+			let sectionCount = 0;
+			let currentScore = 0;
+			let maxScore = 0;
+			let leaderboardShown = true;
+
+			// Session variables
+			let sessionId = localStorage.getItem('sessionId') || generateSessionId();
+
+			// Generate session ID for new users
+			function generateSessionId() {
+				const newSessionId = Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+				localStorage.setItem('sessionId', newSessionId);
+				return newSessionId;
+			}
+
+			// Load player name from localStorage
+			const savedName = localStorage.getItem('playerName');
+			if (savedName) {
+				playerNameInput.value = savedName;
+			}
+
+			// Load leaderboard immediately
+			loadLeaderboard();
+
+			// Name validation function
+			function isValidName(name) {
+				const regex = /^[a-zA-Z0-9_]{3,16}$/;
+				return regex.test(name);
+			}
+
+			// Update submit button state based on name validity
+			function updateSubmitButton() {
+				const name = playerNameInput.value.trim();
+				submitButton.disabled = !isValidName(name);
+			}
+
+			// Reset the entire game state
+			function resetGame() {
+				// Reset counters
+				sectionCount = 0;
+				currentScore = 0;
+				maxScore = 0;
+
+				// Clear tower body
+				towerBody.textContent = '';
+
+				// Update score display
+				currentScoreElement.textContent = '0';
+
+				// Keep leaderboard visible and reload it
+				loadLeaderboard();
+
+				// Scroll to top instantly
+				window.scrollTo({
+					top: 0,
+					left: 0,
+					behavior: 'instant',
+				});
+
+				// Reload initial tower sections
+				for (let i = 0; i < 20; i++) {
+					addTowerSection();
+				}
+			}
+
+			// Normal tower section
+			const normalSection = ` |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |`;
+
+			// Slightly veiny section - one vein
+			const slightlyVeinySection = ` |  .                  |
+ |     .               |
+ |       .             |
+ |         .           |
+ |           .         |
+ |             .       |
+ |               .     |
+ |                 .   |`;
+
+			// Two veins section
+			const twoVeinsSection = ` |  .         .        |
+ |     .         .     |
+ |       .         .   |
+ |         .         . |
+ |           .       . |
+ |             .   .   |
+ |               . .   |
+ |                 .   |`;
+
+			// Three veins section
+			const threeVeinsSection = ` |  .     .       .    |
+ |     .     .       . |
+ |       .     .   .   |
+ |         .     . .   |
+ |           . .   .   |
+ |             . .     |
+ |               . .   |
+ |                 . . |`;
+
+			// Final stage - bottom left veiny
+			const finalVeinySection = ` |  .     .       .    |
+ | .   .     .       . |
+ | .     .     .   .   |
+ | .       .     . .   |
+ | .         . .   .   |
+ | .           . .     |
+ | .             . .   |
+ | .               . . |`;
+
+			function getTowerSection() {
+				if (sectionCount < 100) {
+					return normalSection;
+				} else if (sectionCount < 200) {
+					return slightlyVeinySection;
+				} else if (sectionCount < 300) {
+					return twoVeinsSection;
+				} else if (sectionCount < 400) {
+					return threeVeinsSection;
+				} else {
+					return finalVeinySection;
+				}
+			}
+
+			function addTowerSection() {
+				towerBody.textContent += getTowerSection() + '\n';
+				sectionCount++;
+
+				// Update score based on section count
+				currentScore = sectionCount;
+				if (currentScore > maxScore) {
+					maxScore = currentScore;
+					currentScoreElement.textContent = maxScore;
+				}
+			}
+
+			function loadMoreSections() {
+				for (let i = 0; i < 10; i++) {
+					addTowerSection();
+				}
+			}
+
+			function checkScroll() {
+				if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+					loadMoreSections();
+				}
+			}
+
+			// API functions
+			async function submitScore() {
+				const name = playerNameInput.value.trim();
+				if (!isValidName(name)) {
+					showMessage('Nome non valido! Usa 3-16 caratteri (lettere, numeri, _)', 'error');
+					return;
+				}
+
+				// Save name to localStorage
+				localStorage.setItem('playerName', name);
+
+				try {
+					const response = await fetch('/api/submit-score', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify({
+							name: name,
+							score: maxScore,
+							sessionId: sessionId,
+						}),
+					});
+
+					const data = await response.json();
+					if (data.success) {
+						showMessage(data.message, 'success');
+						loadLeaderboard();
+
+						// Reset the game immediately after successful submission
+						resetGame();
+					} else {
+						showMessage(data.error || 'Errore nel salvare il punteggio', 'error');
+					}
+				} catch (error) {
+					showMessage('Errore di connessione al server', 'error');
+				}
+			}
+
+			async function loadLeaderboard() {
+				try {
+					const response = await fetch('/api/leaderboard');
+					const data = await response.json();
+
+					if (data.success) {
+						displayLeaderboard(data.data);
+					} else {
+						leaderboardList.innerHTML = '<div class="leaderboard-entry"><div>Errore nel caricamento</div></div>';
+					}
+				} catch (error) {
+					leaderboardList.innerHTML = '<div class="leaderboard-entry"><div>Server offline</div></div>';
+				}
+			}
+
+			function displayLeaderboard(scores) {
+				if (scores.length === 0) {
+					leaderboardList.innerHTML = '<div class="leaderboard-entry"><div>Nessun punteggio</div></div>';
+					return;
+				}
+
+				// Ensure only top 5
+				const top5 = scores.slice(0, 5);
+
+				leaderboardList.innerHTML = top5
+					.map(
+						(entry, index) => `
+                <div class="leaderboard-entry">
+                    <div><span class="rank">${index + 1}.</span> ${entry.name}</div>
+                    <div>${entry.score}</div>
+                </div>
+            `
+					)
+					.join('');
+			}
+
+			function showMessage(message, type) {
+				statusMessage.textContent = message;
+				statusMessage.className = `status-message ${type}-message`;
+				setTimeout(() => {
+					statusMessage.textContent = '';
+					statusMessage.className = 'status-message';
+				}, 3000);
+			}
+
+			// Event listeners
+			submitButton.addEventListener('click', submitScore);
+
+			playerNameInput.addEventListener('input', updateSubmitButton);
+
+			playerNameInput.addEventListener('keypress', (e) => {
+				if (e.key === 'Enter' && !submitButton.disabled) {
+					submitScore();
+				}
+			});
+
+			// Initial setup
+			updateSubmitButton();
+
+			// Initial load
+			for (let i = 0; i < 20; i++) {
+				addTowerSection();
+			}
+
+			window.addEventListener('scroll', checkScroll);
+		</script>
+	</body>
+</html>

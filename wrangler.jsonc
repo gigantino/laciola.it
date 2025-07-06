@@ -1,0 +1,24 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "laciola",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-07-05",
+	"observability": {
+		"enabled": true
+	},
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "prod-laciola",
+			"database_id": "800da878-7643-44f4-ad20-46eb5312d6dd"
+		}
+	]
+}
