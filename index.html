@@ -175,7 +175,6 @@
  |                     |</pre><pre id="tower-body"></pre>
 
     <script>
-        const API_BASE = 'http://localhost:3000';
         const towerBody = document.getElementById('tower-body');
         const currentScoreElement = document.getElementById('current-score');
         const playerNameInput = document.getElementById('player-name');
@@ -351,7 +350,7 @@
             localStorage.setItem('playerName', name);
 
             try {
-                const response = await fetch(`${API_BASE}/api/submit-score`, {
+                const response = await fetch('/api/submit-score', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -380,7 +379,7 @@
 
         async function loadLeaderboard() {
             try {
-                const response = await fetch(`${API_BASE}/api/leaderboard`);
+                const response = await fetch('/api/leaderboard');
                 const data = await response.json();
                 
                 if (data.success) {
