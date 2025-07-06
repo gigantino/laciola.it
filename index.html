@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Endless Tower</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: monospace;
+        }
+        
+        pre {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        
+        .welcome-text {
+            margin-top: 50px;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-text">
+        <div>benvenuto su laciola.it</div>
+        <div>sentiti libero di scorrere la pagina</div>
+    </div>
+    
+    <pre id="tower-top">.-----------.
+/              \
+/                 \
+/                   \
+/                      \
+/                        \
+|                         |
+|                         |
+\________________________/
+ |                     |
+ |                     |</pre><pre id="tower-body"></pre>
+
+    <script>
+        const towerBody = document.getElementById('tower-body');
+        let sectionCount = 0;
+
+        const towerSection = ` |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |
+ |                     |`;
+
+        function addTowerSection() {
+            towerBody.textContent += towerSection + '\n';
+            sectionCount++;
+        }
+
+        function loadMoreSections() {
+            for (let i = 0; i < 10; i++) {
+                addTowerSection();
+            }
+        }
+
+        function checkScroll() {
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+                loadMoreSections();
+            }
+        }
+
+        // Initial load
+        for (let i = 0; i < 20; i++) {
+            addTowerSection();
+        }
+
+        window.addEventListener('scroll', checkScroll);
+    </script>
+</body>
+</html>
